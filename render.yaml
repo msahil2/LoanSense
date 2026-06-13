@@ -22,6 +22,12 @@ services:
         value: "false"
       - key: PYTHON_VERSION
         value: "3.11.9"
+      - key: ADMIN_USERNAME
+        value: "admin"
+      - key: ADMIN_EMAIL
+        value: "admin@yourbank.com"
+      - key: ADMIN_PASSWORD
+        sync: false
       # Optional: connect a managed PostgreSQL database on Render
       # and uncomment the lines below, pointing to its connection string.
       # - key: DATABASE_URL

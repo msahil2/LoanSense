@@ -337,18 +337,48 @@ cp .env.example .env
 
 ---
 
+## 🔐 Authentication & Access Control
+
+- **Register/Login required** for all prediction features (`/`, `/predict`, `/history`,
+  `/analytics`, `/model-comparison`).
+- **Regular users** see and download PDF reports for **only their own** predictions
+  (`/history` shows "My Predictions").
+- **Admin accounts** (`is_admin = 1`) can access `/admin` (system-wide stats + charts)
+  and `/history` shows **all users' predictions** with a User ID column. Admins can
+  also download any user's PDF report.
+
+### Creating the Admin Account
+
+Set these environment variables before first run (locally in `.env`, or in your
+Render/Railway dashboard) - the app auto-creates (or promotes) this account on startup:
+
+```
+ADMIN_USERNAME=admin
+ADMIN_EMAIL=admin@yourbank.com
+ADMIN_PASSWORD=ChangeMe123!
+```
+
+Then simply log in with that username/password - you'll see the **Admin** link in the
+navbar and an "Admin" badge next to your name. All other users who register via
+`/register` are regular (non-admin) accounts by default.
+
+---
+
 ## 🔌 API Endpoints
 
 | Method | Route | Description |
 |---|---|---|
-| `GET` | `/` | Home page — loan application form |
-| `POST` | `/predict` | Submit application, get prediction result page |
-| `GET` | `/history` | Prediction history |
-| `GET` | `/admin` | Admin dashboard |
+| `GET/POST` | `/register` | Create a new user account |
+| `GET/POST` | `/login` | User login |
+| `GET` | `/logout` | Log out |
+| `GET` | `/` | Home page — loan application form (login required) |
+| `POST` | `/predict` | Submit application, get prediction result page (login required) |
+| `GET` | `/history` | Own predictions (or all, for admin) |
+| `GET` | `/admin` | Admin dashboard - ALL users (admin only) |
 | `GET` | `/analytics` | Data analytics dashboard |
 | `GET` | `/model-comparison` | Model comparison page |
-| `GET` | `/report/<id>` | Download PDF report for prediction `<id>` |
-| `POST` | `/admin/refresh-charts` | Regenerate all dashboard charts |
+| `GET` | `/report/<id>` | Download PDF report (owner or admin only) |
+| `POST` | `/admin/refresh-charts` | Regenerate all dashboard charts (admin only) |
 | `GET` | `/api/health` | Health check (JSON) |
 
 ---

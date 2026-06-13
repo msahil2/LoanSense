@@ -183,6 +183,97 @@ def generate_all_charts():
     return paths
 
 
+def generate_live_charts(records):
+    """
+    Generate charts based on ACTUAL predictions stored in the database
+    (i.e. real usage data from app users), as opposed to the static
+    training dataset. Used on the Admin Dashboard.
+
+    Parameters
+    ----------
+    records : list of dict
+        Rows from the `predictions` table (as returned by
+        database.db.fetch_all_predictions()).
+
+    Returns
+    -------
+    dict
+        Mapping of chart name -> relative path under static/, or None
+        for charts that could not be generated (e.g. no data yet).
+    """
+    paths = {"live_approval_distribution": None, "live_income_distribution": None,
+             "live_risk_distribution": None, "live_approval_trend": None}
+
+    if not records:
+        return paths
+
+    df = pd.DataFrame(records)
+
+    # ---- 1. Live Approval vs Rejected distribution ----
+    if "prediction" in df.columns and not df["prediction"].dropna().empty:
+        counts = df["prediction"].value_counts()
+        colors = [SUCCESS_COLOR if k == "Approved" else DANGER_COLOR for k in counts.index]
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+        ax.pie(
+            counts.values, labels=counts.index, autopct="%1.1f%%",
+            colors=colors, startangle=90,
+            wedgeprops={"edgecolor": "white", "linewidth": 2},
+            textprops={"fontsize": 11},
+        )
+        ax.set_title("Live Approval Distribution\n(Actual User Predictions)",
+                      fontsize=12, fontweight="bold", color=PRIMARY_COLOR)
+        paths["live_approval_distribution"] = _save_fig(fig, "live_approval_distribution.png")
+
+    # ---- 2. Live Applicant Income distribution ----
+    if "applicant_income" in df.columns and not df["applicant_income"].dropna().empty:
+        fig, ax = plt.subplots(figsize=(6, 4.2))
+        bins = min(20, max(5, df["applicant_income"].nunique()))
+        ax.hist(df["applicant_income"].dropna(), bins=bins, color=ACCENT_COLOR, edgecolor="white")
+        ax.set_title("Live Applicant Income Distribution\n(Actual User Submissions)",
+                      fontsize=12, fontweight="bold", color=PRIMARY_COLOR)
+        ax.set_xlabel("Applicant Income")
+        ax.set_ylabel("Number of Applications")
+        ax.grid(axis="y", linestyle="--", alpha=0.4)
+        paths["live_income_distribution"] = _save_fig(fig, "live_income_distribution.png")
+
+    # ---- 3. Live Risk Score distribution ----
+    if "risk_score" in df.columns and not df["risk_score"].dropna().empty:
+        fig, ax = plt.subplots(figsize=(6, 4.2))
+        bins = min(20, max(5, df["risk_score"].nunique()))
+        ax.hist(df["risk_score"].dropna(), bins=bins, color=PRIMARY_COLOR, edgecolor="white")
+        ax.set_title("Live Risk Score Distribution\n(Actual User Predictions)",
+                      fontsize=12, fontweight="bold", color=PRIMARY_COLOR)
+        ax.set_xlabel("Risk Score (0 = Low Risk, 100 = High Risk)")
+        ax.set_ylabel("Number of Applications")
+        ax.grid(axis="y", linestyle="--", alpha=0.4)
+        paths["live_risk_distribution"] = _save_fig(fig, "live_risk_distribution.png")
+
+    # ---- 4. Approval rate over time (by date) ----
+    if "created_at" in df.columns and "prediction" in df.columns:
+        try:
+            df["date"] = pd.to_datetime(df["created_at"]).dt.date
+            grouped = df.groupby("date")["prediction"].apply(
+                lambda s: (s == "Approved").sum() / len(s) * 100
+            )
+            if len(grouped) >= 1:
+                fig, ax = plt.subplots(figsize=(7, 4.2))
+                ax.plot(grouped.index.astype(str), grouped.values,
+                        marker="o", color=PRIMARY_COLOR, linewidth=2)
+                ax.set_title("Daily Approval Rate\n(Actual User Predictions)",
+                              fontsize=12, fontweight="bold", color=PRIMARY_COLOR)
+                ax.set_xlabel("Date")
+                ax.set_ylabel("Approval Rate (%)")
+                ax.set_ylim(0, 100)
+                ax.grid(axis="y", linestyle="--", alpha=0.4)
+                plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize=8)
+                paths["live_approval_trend"] = _save_fig(fig, "live_approval_trend.png")
+        except Exception:
+            pass
+
+    return paths
+
+
 if __name__ == "__main__":
     generated = generate_all_charts()
     for name, path in generated.items():
