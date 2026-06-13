@@ -1,0 +1,35 @@
+# ============================================================
+# Render Deployment Blueprint
+# ------------------------------------------------------------
+# This file allows one-click deployment on Render using the
+# "New + Blueprint" option. It defines a single web service
+# that builds and runs the Loan Approval Prediction System.
+#
+# Render Docs: https://render.com/docs/blueprint-spec
+# ============================================================
+
+services:
+  - type: web
+    name: loan-approval-prediction-system
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python train.py"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      # Optional: connect a managed PostgreSQL database on Render
+      # and uncomment the lines below, pointing to its connection string.
+      # - key: DATABASE_URL
+      #   fromDatabase:
+      #     name: loan-approval-db
+      #     property: connectionString
+
+# Optional managed PostgreSQL database (uncomment to provision)
+# databases:
+#   - name: loan-approval-db
+#     plan: free
