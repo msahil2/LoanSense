@@ -3,15 +3,24 @@ app.py
 -------
 Main Flask application for the Loan Approval Prediction System.
 
+Authentication:
+    - Users register/login with a username + password.
+    - Each user can only see/download their OWN predictions.
+    - Admin accounts (is_admin=1) can see ALL predictions via /admin.
+    - An initial admin account is auto-created from ADMIN_USERNAME /
+      ADMIN_EMAIL / ADMIN_PASSWORD environment variables (if provided
+      and no admin exists yet).
+
 Routes:
-    GET  /                  -> Home page (loan application form)
-    POST /predict           -> Run prediction, store result, show result page
-    GET  /history           -> Prediction history page
-    GET  /admin             -> Admin dashboard (stats + charts)
+    GET  /                  -> Home page (loan application form) [login required]
+    POST /predict           -> Run prediction, store result, show result page [login required]
+    GET  /history           -> Prediction history (own predictions, or all for admin)
+    GET  /admin             -> Admin dashboard (ALL users' stats + charts) [admin only]
     GET  /analytics          -> Data analytics dashboard
     GET  /model-comparison   -> Model comparison page
-    GET  /report/<id>        -> Download PDF report for a prediction
-    POST /admin/refresh-charts -> Regenerate all chart images
+    GET  /report/<id>        -> Download PDF report for a prediction (owner or admin only)
+    POST /admin/refresh-charts -> Regenerate all chart images [admin only]
+    GET  /register / /login / /logout -> Authentication
     GET  /api/health          -> Health check endpoint (for deployment platforms)
 
 Environment variables used:
@@ -19,16 +28,19 @@ Environment variables used:
     DATABASE_URL    - if set and starts with 'postgres', use PostgreSQL
     SECRET_KEY      - Flask secret key
     MODEL_DIR       - override path to the model directory (optional)
+    ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD - optional, auto-creates an admin account
 """
 
 import os
 import json
+from functools import wraps
 from datetime import datetime
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    flash, jsonify, send_file, abort
+    flash, jsonify, send_file, abort, session, g
 )
+from werkzeug.security import generate_password_hash, check_password_hash
 import joblib
 import pandas as pd
 
@@ -91,6 +103,44 @@ def load_model_artifacts():
 load_model_artifacts()
 db.init_db()
 
+
+def bootstrap_admin_account():
+    """
+    Auto-create an admin account from environment variables if provided
+    and no account with that username exists yet. This makes it easy to
+    get a working admin login immediately after deployment:
+
+        ADMIN_USERNAME=admin
+        ADMIN_EMAIL=admin@example.com
+        ADMIN_PASSWORD=ChangeMe123!
+    """
+    admin_username = os.environ.get("ADMIN_USERNAME")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@example.com")
+
+    if not admin_username or not admin_password:
+        return
+
+    existing = db.get_user_by_username(admin_username)
+    if existing is None:
+        db.create_user(
+            username=admin_username,
+            email=admin_email,
+            password_hash=generate_password_hash(admin_password),
+            is_admin=True,
+        )
+        app.logger.info(f"Created admin account '{admin_username}' from environment variables.")
+    elif not existing.get("is_admin"):
+        # Promote existing user to admin if env vars say so
+        ph = "%s" if db.USE_POSTGRES else "?"
+        with db.get_db() as conn:
+            cur = conn.cursor()
+            cur.execute(f"UPDATE users SET is_admin = 1 WHERE username = {ph};", (admin_username,))
+            conn.commit()
+
+
+bootstrap_admin_account()
+
 # Generate charts at startup if they don't exist yet (keeps first request fast)
 IMAGES_DIR = os.path.join(BASE_DIR, "static", "images")
 _required_charts = [
@@ -120,15 +170,137 @@ FORM_OPTIONS = {
 
 
 # ----------------------------------------------------------------------
-# Routes
+# Authentication helpers
+# ----------------------------------------------------------------------
+@app.before_request
+def load_logged_in_user():
+    """Attach the currently logged-in user (if any) to flask.g."""
+    user_id = session.get("user_id")
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = db.get_user_by_id(user_id)
+
+
+@app.context_processor
+def inject_user():
+    """Make the current user available in all templates as `current_user`."""
+    return {"current_user": g.get("user")}
+
+
+def login_required(view):
+    """Redirect to the login page if the user is not authenticated."""
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if g.user is None:
+            flash("Please log in to continue.", "warning")
+            return redirect(url_for("login", next=request.path))
+        return view(*args, **kwargs)
+    return wrapped_view
+
+
+def admin_required(view):
+    """Restrict a view to admin accounts only."""
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if g.user is None:
+            flash("Please log in to continue.", "warning")
+            return redirect(url_for("login", next=request.path))
+        if not g.user.get("is_admin"):
+            flash("You do not have permission to access that page.", "danger")
+            return redirect(url_for("home"))
+        return view(*args, **kwargs)
+    return wrapped_view
+
+
+# ----------------------------------------------------------------------
+# Authentication routes
+# ----------------------------------------------------------------------
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """User self-registration. New accounts are regular (non-admin) users."""
+    if g.user is not None:
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        email = (request.form.get("email") or "").strip()
+        password = request.form.get("password") or ""
+        confirm_password = request.form.get("confirm_password") or ""
+
+        if not username or not email or not password:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("register"))
+
+        if len(password) < 6:
+            flash("Password must be at least 6 characters long.", "danger")
+            return redirect(url_for("register"))
+
+        if password != confirm_password:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("register"))
+
+        if db.username_or_email_exists(username, email):
+            flash("Username or email is already registered.", "danger")
+            return redirect(url_for("register"))
+
+        db.create_user(
+            username=username,
+            email=email,
+            password_hash=generate_password_hash(password),
+            is_admin=False,
+        )
+        flash("Account created successfully. Please log in.", "success")
+        return redirect(url_for("login"))
+
+    return render_template("register.html", active_page="register")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """User login."""
+    if g.user is not None:
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        password = request.form.get("password") or ""
+
+        user = db.get_user_by_username(username)
+        if user is None or not check_password_hash(user["password_hash"], password):
+            flash("Invalid username or password.", "danger")
+            return redirect(url_for("login"))
+
+        session.clear()
+        session["user_id"] = user["id"]
+        flash(f"Welcome back, {user['username']}!", "success")
+
+        next_url = request.args.get("next")
+        return redirect(next_url or url_for("home"))
+
+    return render_template("login.html", active_page="login")
+
+
+@app.route("/logout")
+def logout():
+    """Log the current user out."""
+    session.clear()
+    flash("You have been logged out.", "success")
+    return redirect(url_for("login"))
+
+
+# ----------------------------------------------------------------------
+# Application Routes
 # ----------------------------------------------------------------------
 @app.route("/")
+@login_required
 def home():
     """Render the loan application form (home page)."""
     return render_template("index.html", options=FORM_OPTIONS, active_page="home")
 
 
 @app.route("/predict", methods=["POST"])
+@login_required
 def predict():
     """
     Handle the loan application form submission:
@@ -136,7 +308,7 @@ def predict():
       2. Build feature frame
       3. Run the best model to get prediction + probability
       4. Compute risk score & explainability factors
-      5. Store the result in the database
+      5. Store the result in the database (linked to the current user)
       6. Render the prediction result page
     """
     try:
@@ -208,8 +380,9 @@ def predict():
             _model, model_name, _scaler, feature_row, importance_dict, top_n=3
         )
 
-        # ---- Persist to database ----
+        # ---- Persist to database (linked to current user) ----
         record = {
+            "user_id": g.user["id"],
             "gender": input_dict["Gender"],
             "married": input_dict["Married"],
             "dependents": input_dict["Dependents"],
@@ -245,11 +418,20 @@ def predict():
 
 
 @app.route("/history")
+@login_required
 def history():
-    """Display the full / recent prediction history."""
+    """
+    Display prediction history.
+
+    - Regular users see ONLY their own predictions.
+    - Admin users see ALL predictions across every account.
+    """
     try:
         limit = request.args.get("limit", default=50, type=int)
-        records = db.fetch_recent_predictions(limit=limit)
+        if g.user.get("is_admin"):
+            records = db.fetch_recent_predictions(limit=limit, user_id=None)
+        else:
+            records = db.fetch_recent_predictions(limit=limit, user_id=g.user["id"])
         return render_template("history.html", records=records, active_page="history")
     except Exception as e:
         app.logger.exception("Failed to load history")
@@ -258,16 +440,20 @@ def history():
 
 
 @app.route("/admin")
+@admin_required
 def admin():
-    """Admin dashboard: summary statistics + recent predictions + charts."""
+    """Admin dashboard: summary statistics + recent predictions (ALL users) + charts."""
     try:
-        stats = db.get_summary_stats()
-        recent = db.fetch_recent_predictions(limit=10)
+        stats = db.get_summary_stats(user_id=None)
+        recent = db.fetch_recent_predictions(limit=10, user_id=None)
+        all_records = db.fetch_all_predictions()
+        live_charts = visualizations.generate_live_charts(all_records)
         return render_template(
             "admin.html",
             stats=stats,
             recent=recent,
             metadata=_metadata,
+            live_charts=live_charts,
             active_page="admin",
         )
     except Exception as e:
@@ -278,17 +464,20 @@ def admin():
             stats={"total": 0, "approved": 0, "rejected": 0, "approval_rate": 0},
             recent=[],
             metadata=_metadata,
+            live_charts={},
             active_page="admin",
         )
 
 
 @app.route("/analytics")
+@login_required
 def analytics():
     """Data analytics dashboard with all visualization charts."""
     return render_template("analytics.html", metadata=_metadata, active_page="analytics")
 
 
 @app.route("/model-comparison")
+@login_required
 def model_comparison():
     """Model comparison page showing accuracy / precision / recall / f1 for all models."""
     return render_template(
@@ -300,11 +489,21 @@ def model_comparison():
 
 
 @app.route("/report/<int:pred_id>")
+@login_required
 def report(pred_id):
-    """Generate and download a PDF report for a specific prediction."""
+    """
+    Generate and download a PDF report for a specific prediction.
+
+    Only the owner of the prediction or an admin may download it.
+    """
     record = db.fetch_prediction_by_id(pred_id)
     if record is None:
         abort(404)
+
+    is_owner = record.get("user_id") == g.user["id"]
+    if not is_owner and not g.user.get("is_admin"):
+        flash("You do not have permission to view that report.", "danger")
+        return redirect(url_for("history"))
 
     # Reconstruct top_factors_list for the PDF
     try:
@@ -324,8 +523,9 @@ def report(pred_id):
 
 
 @app.route("/admin/refresh-charts", methods=["POST"])
+@admin_required
 def refresh_charts():
-    """Regenerate all dashboard charts (useful after retraining)."""
+    """Regenerate all dashboard charts (useful after retraining). Admin only."""
     try:
         visualizations.generate_all_charts()
         return jsonify({"status": "success", "message": "Charts refreshed successfully."})

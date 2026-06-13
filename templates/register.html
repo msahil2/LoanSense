@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account | Loan Approval Prediction System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card card-banking">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-plus-fill text-primary" style="font-size: 2.5rem;"></i>
+                        <h4 class="fw-bold mt-2">Create Your Account</h4>
+                        <p class="text-muted small mb-0">Sign up to apply for a loan and track your predictions.</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('register') }}" class="form-banking needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required autofocus minlength="3">
+                            <div class="invalid-feedback">Please choose a username (at least 3 characters).</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback">Please enter a valid email address.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                            <div class="invalid-feedback">Password must be at least 6 characters.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="6">
+                            <div class="invalid-feedback">Please confirm your password.</div>
+                        </div>
+                        <button type="submit" class="btn btn-banking-primary w-100">
+                            <i class="bi bi-person-check-fill me-1"></i> Create Account
+                        </button>
+                    </form>
+
+                    <p class="text-center text-muted small mt-3 mb-0">
+                        Already have an account? <a href="{{ url_for('login') }}">Log in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
