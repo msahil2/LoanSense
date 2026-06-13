@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Model Comparison | Loan Approval Prediction System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-cpu me-2"></i>Model Comparison</h2>
+        <p>Performance metrics for all trained machine learning models. The best-performing model is used in production.</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+
+    <!-- ================= Metrics Table ================= -->
+    <div class="card card-banking mb-4">
+        <div class="card-header py-3"><i class="bi bi-table me-2"></i>Performance Metrics</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-banking table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, m in metadata.results.items() %}
+                        <tr class="{{ 'best-model-row' if name == metadata.best_model_name }}">
+                            <td class="fw-semibold">{{ name }}</td>
+                            <td>{{ m.accuracy }}%</td>
+                            <td>{{ m.precision }}%</td>
+                            <td>{{ m.recall }}%</td>
+                            <td>{{ m.f1_score }}%</td>
+                            <td>
+                                {% if name == metadata.best_model_name %}
+                                    <span class="badge-approved"><i class="bi bi-trophy-fill me-1"></i>Best Model (In Use)</span>
+                                {% else %}
+                                    <span class="text-muted">Evaluated</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Chart ================= -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-7">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-bar-chart-fill me-2"></i>Accuracy &amp; F1-Score Comparison</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/model_comparison.png') }}" alt="Model Comparison Chart">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-list-stars me-2"></i>Feature Importance</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/feature_importance.png') }}" alt="Feature Importance">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Confusion Matrices ================= -->
+    <div class="card card-banking">
+        <div class="card-header py-3"><i class="bi bi-grid-3x3 me-2"></i>Confusion Matrices (Test Set)</div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for name, m in metadata.results.items() %}
+                <div class="col-md-4">
+                    <h6 class="fw-bold text-center">{{ name }}</h6>
+                    <table class="table table-sm table-bordered text-center mb-1">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Pred: Rejected</th>
+                                <th>Pred: Approved</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>Actual: Rejected</th>
+                                <td>{{ m.confusion_matrix[0][0] }}</td>
+                                <td>{{ m.confusion_matrix[0][1] }}</td>
+                            </tr>
+                            <tr>
+                                <th>Actual: Approved</th>
+                                <td>{{ m.confusion_matrix[1][0] }}</td>
+                                <td>{{ m.confusion_matrix[1][1] }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Feature Importance Table ================= -->
+    <div class="card card-banking mt-4">
+        <div class="card-header py-3"><i class="bi bi-list-ol me-2"></i>Detailed Feature Importance ({{ metadata.best_model_name }})</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-banking table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Feature</th>
+                            <th>Importance Weight</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set sorted_items = feature_importance.best_model_importance.items() | sort(attribute='1', reverse=true) %}
+                        {% for feat, imp in sorted_items %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ feat }}</td>
+                            <td>
+                                <div class="progress" style="height: 18px; width: 200px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ (imp * 100 * 3)|round(1) }}%;">
+                                        {{ "%.3f"|format(imp) }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

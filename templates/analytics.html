@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard | Loan Approval Prediction System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-bar-chart-line me-2"></i>Data Analytics Dashboard</h2>
+        <p>Visual insights into the training dataset, feature relationships, and model behavior.</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-pie-chart-fill me-2"></i>Loan Approval Distribution</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/approval_distribution.png') }}" alt="Loan Approval Distribution">
+                    <p class="text-muted small mt-2 mb-0">
+                        Distribution of approved vs rejected loans in the training dataset.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-graph-up me-2"></i>Applicant Income Distribution</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/income_distribution.png') }}" alt="Income Distribution">
+                    <p class="text-muted small mt-2 mb-0">
+                        Histogram of applicant monthly income across the dataset.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Feature Correlation Heatmap</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/correlation_heatmap.png') }}" alt="Correlation Heatmap">
+                    <p class="text-muted small mt-2 mb-0">
+                        Correlation between all numeric/engineered features and the loan approval outcome.
+                        Values close to +1 or -1 indicate strong relationships.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-bar-chart-fill me-2"></i>Feature Importance</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/feature_importance.png') }}" alt="Feature Importance">
+                    <p class="text-muted small mt-2 mb-0">
+                        Relative importance of each feature in the active model ({{ metadata.best_model_name }}).
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-trophy-fill me-2"></i>Model Accuracy Comparison</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/model_comparison.png') }}" alt="Model Accuracy Comparison">
+                    <p class="text-muted small mt-2 mb-0">
+                        Accuracy and F1-score comparison across Logistic Regression, Decision Tree, and Random Forest.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

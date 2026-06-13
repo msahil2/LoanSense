@@ -1,0 +1,336 @@
+/* ============================================================
+   Loan Approval Prediction System - Main Stylesheet
+   Banking-style professional theme
+   ============================================================ */
+
+:root {
+    --primary-color: #0B3D91;
+    --primary-dark: #082b69;
+    --accent-color: #1A8FE3;
+    --success-color: #1FAA59;
+    --danger-color: #E0433B;
+    --warning-color: #F4A623;
+    --neutral-color: #7C8A99;
+    --light-bg: #F4F7FB;
+    --card-shadow: 0 4px 18px rgba(11, 61, 145, 0.08);
+    --border-radius: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--light-bg);
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #1f2937;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-content {
+    flex: 1;
+}
+
+/* ============================ Navbar ============================ */
+.main-navbar {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.main-navbar .navbar-brand {
+    color: #fff;
+    letter-spacing: 0.3px;
+}
+
+.brand-subtitle {
+    font-size: 0.75rem;
+    color: #cfe0ff;
+    font-weight: 400;
+    border-left: 1px solid rgba(255,255,255,0.3);
+    padding-left: 0.75rem;
+}
+
+.main-navbar .nav-link {
+    color: #e3ecff;
+    font-weight: 500;
+    padding: 0.55rem 1rem !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.main-navbar .nav-link:hover,
+.main-navbar .nav-link.active {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================ Hero / Header sections ============================ */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    color: #fff;
+    padding: 2.75rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 28px 28px;
+}
+
+.hero-section h1 {
+    font-weight: 700;
+}
+
+.hero-section p {
+    color: #e3ecff;
+    max-width: 720px;
+}
+
+.page-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: #fff;
+    padding: 2rem 0;
+    margin-bottom: 1.75rem;
+    border-radius: 0 0 24px 24px;
+}
+
+.page-header h2 {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.page-header p {
+    color: #e3ecff;
+    margin-bottom: 0;
+}
+
+/* ============================ Cards ============================ */
+.card-banking {
+    background: #fff;
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+}
+
+.card-banking .card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #eef1f6;
+    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.stat-card {
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    color: #fff;
+    box-shadow: var(--card-shadow);
+    height: 100%;
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-card .stat-icon {
+    font-size: 2.2rem;
+    opacity: 0.85;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.stat-card.bg-total { background: linear-gradient(135deg, var(--primary-color), #1c5fc0); }
+.stat-card.bg-approved { background: linear-gradient(135deg, var(--success-color), #2ecc71); }
+.stat-card.bg-rejected { background: linear-gradient(135deg, var(--danger-color), #ff6b6b); }
+.stat-card.bg-rate { background: linear-gradient(135deg, var(--warning-color), #f7c873); color: #4a3000; }
+
+/* ============================ Forms ============================ */
+.form-banking label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #344054;
+    margin-bottom: 0.3rem;
+}
+
+.form-banking .form-control,
+.form-banking .form-select {
+    border-radius: 10px;
+    border: 1px solid #d0d5dd;
+    padding: 0.6rem 0.85rem;
+}
+
+.form-banking .form-control:focus,
+.form-banking .form-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem rgba(26, 143, 227, 0.18);
+}
+
+.form-section-title {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    border-left: 4px solid var(--accent-color);
+    padding-left: 0.6rem;
+}
+
+/* ============================ Buttons ============================ */
+.btn-banking-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.7rem 1.8rem;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.btn-banking-primary:hover {
+    color: #fff;
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.btn-outline-banking {
+    border: 1.5px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+    border-radius: 10px;
+    background: transparent;
+}
+
+.btn-outline-banking:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* ============================ Result page ============================ */
+.result-badge {
+    font-size: 1.6rem;
+    font-weight: 700;
+    padding: 0.8rem 2rem;
+    border-radius: var(--border-radius);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.result-approved {
+    background: rgba(31, 170, 89, 0.12);
+    color: var(--success-color);
+    border: 2px solid var(--success-color);
+}
+
+.result-rejected {
+    background: rgba(224, 67, 59, 0.12);
+    color: var(--danger-color);
+    border: 2px solid var(--danger-color);
+}
+
+.probability-ring {
+    width: 160px;
+    height: 160px;
+}
+
+.factor-card {
+    border-radius: 12px;
+    border: 1px solid #eef1f6;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    background: #fafcff;
+    border-left: 5px solid var(--accent-color);
+}
+
+.factor-card.factor-negative {
+    border-left-color: var(--danger-color);
+}
+
+.factor-card.factor-positive {
+    border-left-color: var(--success-color);
+}
+
+/* ============================ Tables ============================ */
+.table-banking thead {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.table-banking tbody tr:hover {
+    background-color: #f0f6ff;
+}
+
+.badge-approved {
+    background-color: rgba(31, 170, 89, 0.14);
+    color: var(--success-color);
+    font-weight: 600;
+    padding: 0.35em 0.75em;
+    border-radius: 8px;
+}
+
+.badge-rejected {
+    background-color: rgba(224, 67, 59, 0.14);
+    color: var(--danger-color);
+    font-weight: 600;
+    padding: 0.35em 0.75em;
+    border-radius: 8px;
+}
+
+/* ============================ Charts ============================ */
+.chart-card img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+/* ============================ Footer ============================ */
+.footer-banking {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    color: #e3ecff;
+}
+
+.text-light-muted {
+    color: #c8d7f5;
+}
+
+/* ============================ Loader Overlay ============================ */
+.global-loader {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 61, 145, 0.65);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+/* ============================ Misc ============================ */
+.section-divider {
+    border-top: 1px dashed #d0d5dd;
+    margin: 1.5rem 0;
+}
+
+.model-badge {
+    background: var(--primary-color);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.25em 0.75em;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.best-model-row {
+    background-color: rgba(31, 170, 89, 0.08) !important;
+}
+
+@media (max-width: 576px) {
+    .hero-section, .page-header {
+        border-radius: 0 0 18px 18px;
+        padding: 1.75rem 0;
+    }
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+}

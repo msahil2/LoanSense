@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Loan Approval Prediction System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h2><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</h2>
+            <p>Overview of system performance and prediction activity.</p>
+        </div>
+        <button id="refreshChartsBtn" class="btn btn-light text-primary fw-semibold">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh Charts
+        </button>
+    </div>
+</div>
+
+<div class="container mb-5">
+
+    <!-- ================= Stat Cards ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-total">
+                <i class="bi bi-collection-fill stat-icon"></i>
+                <div class="stat-value">{{ stats.total }}</div>
+                <div>Total Predictions</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-approved">
+                <i class="bi bi-check-circle-fill stat-icon"></i>
+                <div class="stat-value">{{ stats.approved }}</div>
+                <div>Approved</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-rejected">
+                <i class="bi bi-x-circle-fill stat-icon"></i>
+                <div class="stat-value">{{ stats.rejected }}</div>
+                <div>Rejected</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-rate">
+                <i class="bi bi-percent stat-icon"></i>
+                <div class="stat-value">{{ stats.approval_rate }}%</div>
+                <div>Approval Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Model Info ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-12">
+            <div class="card card-banking">
+                <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h6 class="fw-bold mb-1"><i class="bi bi-cpu me-2"></i>Active Model</h6>
+                        <span class="model-badge fs-6">{{ metadata.best_model_name }}</span>
+                        <span class="text-muted ms-2">
+                            Accuracy: {{ metadata.results[metadata.best_model_name].accuracy }}% &middot;
+                            F1-Score: {{ metadata.results[metadata.best_model_name].f1_score }}%
+                        </span>
+                    </div>
+                    <a href="{{ url_for('model_comparison') }}" class="btn btn-outline-banking">
+                        <i class="bi bi-bar-chart me-1"></i> View Model Comparison
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Charts ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-pie-chart-fill me-2"></i>Loan Approval Distribution</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/approval_distribution.png') }}" alt="Loan Approval Distribution">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card card-banking chart-card h-100">
+                <div class="card-header py-3"><i class="bi bi-bar-chart-fill me-2"></i>Model Accuracy Comparison</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/model_comparison.png') }}" alt="Model Accuracy Comparison">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Recent Predictions ================= -->
+    <div class="card card-banking">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-clock-history me-2"></i>Recent Prediction History</span>
+            <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-banking">View All</a>
+        </div>
+        <div class="card-body p-0">
+            {% if recent %}
+            <div class="table-responsive">
+                <table class="table table-banking table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date / Time</th>
+                            <th>Income</th>
+                            <th>Loan Amount</th>
+                            <th>Result</th>
+                            <th>Probability</th>
+                            <th>Risk Score</th>
+                            <th>Model</th>
+                            <th>Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recent %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td class="text-nowrap">{{ r.created_at }}</td>
+                            <td>{{ "%.0f"|format(r.applicant_income) }} + {{ "%.0f"|format(r.coapplicant_income) }}</td>
+                            <td>{{ "%.0f"|format(r.loan_amount) }}k</td>
+                            <td>
+                                {% if r.prediction == 'Approved' %}
+                                    <span class="badge-approved"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                                {% else %}
+                                    <span class="badge-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.1f"|format(r.probability) }}%</td>
+                            <td>{{ "%.1f"|format(r.risk_score) }}</td>
+                            <td><span class="model-badge">{{ r.model_used }}</span></td>
+                            <td>
+                                <a href="{{ url_for('report', pred_id=r.id) }}" class="btn btn-sm btn-outline-banking">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No predictions yet. Once users submit applications, they will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

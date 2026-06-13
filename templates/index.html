@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Apply for a Loan | Loan Approval Prediction System{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1><i class="bi bi-shield-check me-2"></i>Loan Approval Prediction</h1>
+        <p class="lead">
+            Get an instant, AI-powered assessment of your loan application. Our machine learning model
+            analyzes your financial profile and provides a transparent, explainable decision in seconds.
+        </p>
+        <div class="d-flex gap-3 mt-3 flex-wrap">
+            <span class="badge bg-light text-primary px-3 py-2"><i class="bi bi-lightning-charge-fill me-1"></i> Instant Decisions</span>
+            <span class="badge bg-light text-primary px-3 py-2"><i class="bi bi-eye-fill me-1"></i> Explainable AI</span>
+            <span class="badge bg-light text-primary px-3 py-2"><i class="bi bi-cpu-fill me-1"></i> Best-of-3 ML Models</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card card-banking">
+                <div class="card-header py-3">
+                    <i class="bi bi-file-earmark-text me-2"></i>Loan Application Form
+                </div>
+                <div class="card-body p-4">
+                    <form id="loanApplicationForm" class="form-banking needs-validation" method="POST" action="{{ url_for('predict') }}" novalidate>
+
+                        <h6 class="form-section-title"><i class="bi bi-person-fill me-1"></i> Personal Information</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="Gender">Gender</label>
+                                <select class="form-select" id="Gender" name="Gender" required>
+                                    {% for opt in options.Gender %}
+                                    <option value="{{ opt }}">{{ opt }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Married">Marital Status</label>
+                                <select class="form-select" id="Married" name="Married" required>
+                                    {% for opt in options.Married %}
+                                    <option value="{{ opt }}">{{ opt }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="Dependents">Number of Dependents</label>
+                                <select class="form-select" id="Dependents" name="Dependents" required>
+                                    {% for opt in options.Dependents %}
+                                    <option value="{{ opt }}">{{ opt }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Education">Education Level</label>
+                                <select class="form-select" id="Education" name="Education" required>
+                                    {% for opt in options.Education %}
+                                    <option value="{{ opt }}">{{ opt }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Self_Employed">Employment Status</label>
+                                <select class="form-select" id="Self_Employed" name="Self_Employed" required>
+                                    <option value="No">Salaried (Not Self-Employed)</option>
+                                    <option value="Yes">Self-Employed</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="form-section-title mt-4"><i class="bi bi-cash-stack me-1"></i> Financial Details</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="ApplicantIncome">Monthly Applicant Income (₹ / $)</label>
+                                <input type="number" min="0" step="1" class="form-control" id="ApplicantIncome" name="ApplicantIncome" placeholder="e.g. 5000" required>
+                                <div class="invalid-feedback">Please enter a valid income amount.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="CoapplicantIncome">Monthly Co-applicant Income</label>
+                                <input type="number" min="0" step="1" class="form-control" id="CoapplicantIncome" name="CoapplicantIncome" placeholder="e.g. 1500" value="0" required>
+                                <div class="invalid-feedback">Please enter a valid amount (0 if none).</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="LoanAmount">Requested Loan Amount (in thousands)</label>
+                                <input type="number" min="1" step="1" class="form-control" id="LoanAmount" name="LoanAmount" placeholder="e.g. 150" required>
+                                <div class="invalid-feedback">Please enter a valid loan amount greater than 0.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Loan_Amount_Term">Loan Term (months)</label>
+                                <select class="form-select" id="Loan_Amount_Term" name="Loan_Amount_Term" required>
+                                    {% for opt in options.Loan_Amount_Term %}
+                                    <option value="{{ opt }}" {% if opt == 360 %}selected{% endif %}>{{ opt }} months</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="form-section-title mt-4"><i class="bi bi-credit-card-2-front-fill me-1"></i> Credit &amp; Property</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="Credit_History">Credit History</label>
+                                <select class="form-select" id="Credit_History" name="Credit_History" required>
+                                    {% for value, label in options.Credit_History %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Whether you have a verified prior credit/loan repayment history.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Property_Area">Property Area</label>
+                                <select class="form-select" id="Property_Area" name="Property_Area" required>
+                                    {% for opt in options.Property_Area %}
+                                    <option value="{{ opt }}">{{ opt }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+                            <small class="text-muted">
+                                <i class="bi bi-lock-fill me-1"></i> Your information is processed securely and used only for prediction purposes.
+                            </small>
+                            <button type="submit" class="btn btn-banking-primary px-4">
+                                <i class="bi bi-search me-1"></i> Check Loan Eligibility
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info cards -->
+            <div class="row mt-4 g-3">
+                <div class="col-md-4">
+                    <div class="card card-banking h-100 text-center p-3">
+                        <i class="bi bi-graph-up-arrow fs-2 text-primary mb-2"></i>
+                        <h6 class="fw-bold">Data-Driven Decisions</h6>
+                        <p class="small text-muted mb-0">Our model is trained on historical loan application data using industry-standard ML algorithms.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-banking h-100 text-center p-3">
+                        <i class="bi bi-lightbulb fs-2 text-primary mb-2"></i>
+                        <h6 class="fw-bold">Explainable AI</h6>
+                        <p class="small text-muted mb-0">Every decision comes with the top 3 factors that influenced the outcome.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-banking h-100 text-center p-3">
+                        <i class="bi bi-file-earmark-pdf fs-2 text-primary mb-2"></i>
+                        <h6 class="fw-bold">Downloadable Reports</h6>
+                        <p class="small text-muted mb-0">Generate a professional PDF report for every prediction made.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

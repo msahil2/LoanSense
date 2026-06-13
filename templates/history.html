@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction History | Loan Approval Prediction System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h2><i class="bi bi-clock-history me-2"></i>Prediction History</h2>
+        <p>A complete log of all loan predictions made through this system.</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="card card-banking">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-table me-2"></i>Recent Predictions ({{ records|length }})</span>
+            <a href="{{ url_for('home') }}" class="btn btn-sm btn-banking-primary">
+                <i class="bi bi-plus-circle me-1"></i> New Application
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if records %}
+            <div class="table-responsive">
+                <table class="table table-banking table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date / Time</th>
+                            <th>Applicant Profile</th>
+                            <th>Income</th>
+                            <th>Loan Amount</th>
+                            <th>Credit History</th>
+                            <th>Result</th>
+                            <th>Probability</th>
+                            <th>Model</th>
+                            <th>Report</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in records %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td class="text-nowrap">{{ r.created_at }}</td>
+                            <td>
+                                {{ r.gender }}, {{ r.married }}<br>
+                                <small class="text-muted">{{ r.education }} &middot; {{ r.dependents }} dependent(s)</small>
+                            </td>
+                            <td>{{ "%.0f"|format(r.applicant_income) }} + {{ "%.0f"|format(r.coapplicant_income) }}</td>
+                            <td>{{ "%.0f"|format(r.loan_amount) }}k / {{ "%.0f"|format(r.loan_amount_term) }}mo</td>
+                            <td>
+                                {% if r.credit_history == 1 %}
+                                    <span class="badge-approved">Good</span>
+                                {% else %}
+                                    <span class="badge-rejected">Poor</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.prediction == 'Approved' %}
+                                    <span class="badge-approved"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                                {% else %}
+                                    <span class="badge-rejected"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ "%.1f"|format(r.probability) }}%</td>
+                            <td><span class="model-badge">{{ r.model_used }}</span></td>
+                            <td>
+                                <a href="{{ url_for('report', pred_id=r.id) }}" class="btn btn-sm btn-outline-banking">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">No predictions have been made yet.</p>
+                <a href="{{ url_for('home') }}" class="btn btn-banking-primary mt-2">
+                    <i class="bi bi-plus-circle me-1"></i> Make Your First Prediction
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
