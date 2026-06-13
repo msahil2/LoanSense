@@ -1,0 +1,33 @@
+{
+  "best_model_importance": {
+    "Gender": 0.0178,
+    "Married": 0.0712,
+    "Dependents": 0.0107,
+    "Education": 0.0915,
+    "Self_Employed": 0.0151,
+    "ApplicantIncome": 0.0613,
+    "CoapplicantIncome": 0.0399,
+    "LoanAmount": 0.2028,
+    "Loan_Amount_Term": 0.0026,
+    "Credit_History": 0.3496,
+    "Property_Area": 0.0169,
+    "TotalIncome": 0.0739,
+    "IncomeLoanRatio": 0.0467
+  },
+  "random_forest_importance": {
+    "Gender": 0.0112,
+    "Married": 0.0105,
+    "Dependents": 0.0297,
+    "Education": 0.0219,
+    "Self_Employed": 0.0111,
+    "ApplicantIncome": 0.0845,
+    "CoapplicantIncome": 0.067,
+    "LoanAmount": 0.1318,
+    "Loan_Amount_Term": 0.0374,
+    "Credit_History": 0.3336,
+    "Property_Area": 0.0229,
+    "TotalIncome": 0.0934,
+    "IncomeLoanRatio": 0.145
+  },
+  "best_model_name": "Logistic Regression"
+}

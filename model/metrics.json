@@ -1,0 +1,70 @@
+{
+  "best_model_name": "Logistic Regression",
+  "feature_columns": [
+    "Gender",
+    "Married",
+    "Dependents",
+    "Education",
+    "Self_Employed",
+    "ApplicantIncome",
+    "CoapplicantIncome",
+    "LoanAmount",
+    "Loan_Amount_Term",
+    "Credit_History",
+    "Property_Area",
+    "TotalIncome",
+    "IncomeLoanRatio"
+  ],
+  "results": {
+    "Logistic Regression": {
+      "accuracy": 87.5,
+      "precision": 88.78,
+      "recall": 96.3,
+      "f1_score": 92.39,
+      "confusion_matrix": [
+        [
+          28,
+          23
+        ],
+        [
+          7,
+          182
+        ]
+      ]
+    },
+    "Decision Tree": {
+      "accuracy": 86.25,
+      "precision": 87.5,
+      "recall": 96.3,
+      "f1_score": 91.69,
+      "confusion_matrix": [
+        [
+          25,
+          26
+        ],
+        [
+          7,
+          182
+        ]
+      ]
+    },
+    "Random Forest": {
+      "accuracy": 87.08,
+      "precision": 87.98,
+      "recall": 96.83,
+      "f1_score": 92.19,
+      "confusion_matrix": [
+        [
+          26,
+          25
+        ],
+        [
+          6,
+          183
+        ]
+      ]
+    }
+  },
+  "uses_scaler": true,
+  "trained_rows": 1200
+}
